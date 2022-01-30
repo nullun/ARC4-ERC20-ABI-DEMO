@@ -1,0 +1,118 @@
+{
+	"name": "TestToken",
+	"desc": "My first ARC4 compliant ERC20 token on Algorand.",
+	"networks": {
+		"3eaaT1N53+o6+zJfxMF2Nk5TnWVNre6BRF5hFy+ef8U=": { "appID": 16 }
+	},
+	"methods": [
+		{
+			"name": "name",
+			"desc": "Returns the name of the token - e.g. \"TestToken\".",
+			"args": [],
+			"returns": { "type": "string", "desc": "The name of the token." }
+		},
+		{
+			"name": "symbol",
+			"desc": "Returns the symbol of the token. E.g. \"TT\".",
+			"args": [],
+			"returns": { "type": "string", "desc": "The symbol of the token." }
+		},
+		{
+			"name": "decimals",
+			"desc": "Returns the number of decimals the token uses - e.g. 8, means to divide the token amount by 100000000 to get its user representation.",
+			"args": [],
+			"returns": { "type": "uint64", "desc": "The number of decimals the token used." }
+		},
+		{
+			"name": "totalSupply",
+			"desc": "Returns the total token supply.",
+			"args": [],
+			"returns": { "type": "uint64", "desc": "The total supply of the token." }
+		},
+		{
+			"name": "balanceOf",
+			"desc": "Returns the account balance of another account with address _owner.",
+			"args": [
+				{
+					"type": "address",
+					"name": "_owner",
+					"desc": "Address of account you want the balance for."
+				}
+			],
+			"returns": { "type": "uint64", "desc": "Balance of address." }
+		},
+		{
+			"name": "transfer",
+			"desc": "Transfers _value amount of tokens to address _to.",
+			"args": [
+				{
+					"type": "address",
+					"name": "_to",
+					"desc": "Address to send tokens to."
+				},
+				{
+					"type": "uint64",
+					"name": "_to",
+					"desc": "Amount of tokens to send."
+				}
+			],
+			"returns": { "type": "bool", "desc": "Returns true if successful." }
+		},
+		{
+			"name": "transferFrom",
+			"desc": "Transfers _value amount of tokens from address _from to address _to.",
+			"args": [
+				{
+					"type": "address",
+					"name": "_from",
+					"desc": "Address to send tokens from."
+				},
+				{
+					"type": "address",
+					"name": "_to",
+					"desc": "Address to send tokens to."
+				},
+				{
+					"type": "uint64",
+					"name": "_value",
+					"desc": "Amount of tokens to send."
+				}
+			],
+			"returns": { "type": "bool", "desc": "Returns true if successful." }
+		},
+		{
+			"name": "approve",
+			"desc": "Allows _spender to withdraw from your account multiple times, up to the _value amount. If this function is called again it overwrites the current allowance with _value.",
+			"args": [
+				{
+					"type": "address",
+					"name": "_spender",
+					"desc": "Address of account you want to allow access to your funds."
+				},
+				{
+					"type": "uint64",
+					"name": "_value",
+					"desc": "Allowance to give spender."
+				}
+			],
+			"returns": { "type": "bool", "desc": "Returns true if successful." }
+		},
+		{
+			"name": "allowance",
+			"desc": "Returns the amount which _spender is still allowed to withdraw from _owner.",
+			"args": [
+				{
+					"type": "address",
+					"name": "_owner",
+					"desc": "Address of account to check."
+				},
+				{
+					"type": "address",
+					"name": "_spender",
+					"desc": "Address of spender which we're finding the limit for."
+				}
+			],
+			"returns": { "type": "uint64", "desc": "Allowance of spender for owner." }
+		}
+	]
+}
