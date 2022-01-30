@@ -87,6 +87,9 @@ bnz method_allowance
 
 err
 
+// During deployment the full total supply will be given to the deployer, this
+// means the deployer must create the application with the OnCopmletion type
+// OptIn.
 handle_setup:
 	txn ApplicationArgs 0
 	method "deploy(string,string,uint64,uint64)bool"
@@ -123,6 +126,8 @@ handle_setup:
 	int 1
 	return
 
+// When a user OptIn they initiate their balance to 0, allowing others to
+// transfer to them.
 handle_optin:
 	txn Sender
 	byte "balance"
@@ -135,18 +140,32 @@ handle_optin:
 	int 1
 	return
 
+// Allow users to CloseOut, potentially burning their supply in the process.
+// This should do the same as ClearState program.
 handle_closeout:
-	// Should do the same as ClearState program.
-	// Remove balance from circulating.
+	byte "totalSupply"
+	dup
+	app_global_get
+	txn Sender
+	byte "balance"
+	app_local_get
+	-
+	app_global_put
+
 	int 1
 	return
 
+// For development and testing purposes, we allow the deployer to update and
+// delete this application.
 handle_update_or_delete:
 	txn Sender
 	global CreatorAddress
 	==
 	return
 
+// Name
+//
+//Returns the name of the token - e.g. "TestToken".
 method_name:
 	byte 0x151f7c75
 	byte "name"
@@ -157,6 +176,9 @@ method_name:
 	int 1
 	return
 
+// Symbol
+//
+// Returns the symbol of the token. E.g. "TT".
 method_symbol:
 	byte 0x151f7c75
 	byte "symbol"
@@ -167,6 +189,10 @@ method_symbol:
 	int 1
 	return
 
+// Decimals
+//
+// Returns the number of decimals the token uses - e.g. 8, means to divide the
+// token amount by 100000000 to get its user representation.
 method_decimals:
 	byte 0x151f7c75
 	byte "decimals"
@@ -178,6 +204,9 @@ method_decimals:
 	int 1
 	return
 
+// Total Supply
+//
+// Returns the total token supply.
 method_totalSupply:
 	byte 0x151f7c75
 	byte "totalSupply"
@@ -189,6 +218,12 @@ method_totalSupply:
 	int 1
 	return
 
+// Balance Of
+//
+// Arguments:
+//	address _owner
+//
+// Returns the account balance of another account with address _owner.
 method_balanceOf:
 	byte 0x151f7c75
 	txn ApplicationArgs 1
@@ -200,6 +235,13 @@ method_balanceOf:
 	int 1
 	return
 
+// Transfer
+//
+// Arguments:
+//	address _to
+//	uint64 _value
+//
+// Transfers _value amount of tokens to address _to.
 method_transfer:
 	// Subtract from sender
 	txn Sender
@@ -227,6 +269,14 @@ method_transfer:
 	int 1
 	return
 
+// Transfer From
+//
+// Arguments:
+//	address _from
+//	address _to
+//	uint64 _value
+//
+// Transfers _value amount of tokens from address _from to address _to.
 method_transferFrom:
 	// Sender MUST have a record containing their allowance.
 	// Check the senders allowance is greater than or equal to the amount being sent.

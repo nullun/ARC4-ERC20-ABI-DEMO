@@ -1,2 +1,12 @@
 #pragma version 6
+byte "totalSupply"
+dup
+app_global_get
+txn Sender
+byte "balance"
+app_local_get
+-
+app_global_put
+
 int 1
+return
