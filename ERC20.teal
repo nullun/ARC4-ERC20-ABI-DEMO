@@ -1,0 +1,337 @@
+// Title: ERC20 Demo for Algorand
+// Author: nullun
+//
+// DO NOT USE
+//
+// Global States:
+//	+ Name
+//	+ Symbol
+//	+ Decimals
+//	+ Total Supply
+// Local States:
+//	+ Balance
+//	+ Up to 15 additional spenders.
+#pragma version 6
+
+// Deploy
+txn ApplicationID
+bz handle_setup
+
+// OptIn
+txn OnCompletion
+int OptIn
+==
+bnz handle_optin
+
+// CloseOut (will work the same as a ClearState call)
+txn OnCompletion
+int CloseOut
+==
+bnz handle_closeout
+
+// Update and Delete - For development purposes
+txn OnCompletion
+int UpdateApplication
+==
+txn OnCompletion
+int DeleteApplication
+==
+||
+bnz handle_update_or_delete
+
+// ARC4 compliant ABI handlers
+txn ApplicationArgs 0
+method "name()string"
+==
+bnz method_name
+
+txn ApplicationArgs 0
+method "symbol()string"
+==
+bnz method_symbol
+
+txn ApplicationArgs 0
+method "decimals()uint64"
+==
+bnz method_decimals
+
+txn ApplicationArgs 0
+method "totalSupply()uint64"
+==
+bnz method_totalSupply
+
+txn ApplicationArgs 0
+method "balanceOf(address)uint64"
+==
+bnz method_balanceOf
+
+txn ApplicationArgs 0
+method "transfer(address,uint64)bool"
+==
+bnz method_transfer
+
+txn ApplicationArgs 0
+method "transferFrom(address,address,uint64)bool"
+==
+bnz method_transferFrom
+
+txn ApplicationArgs 0
+method "approve(address,uint64)bool"
+==
+bnz method_approve
+
+txn ApplicationArgs 0
+method "allowance(address,address)uint64"
+==
+bnz method_allowance
+
+err
+
+handle_setup:
+	txn ApplicationArgs 0
+	method "deploy(string,string,uint64,uint64)bool"
+	==
+	assert
+
+	byte "name"
+	txn ApplicationArgs 1
+	app_global_put
+
+	byte "symbol"
+	txn ApplicationArgs 2
+	app_global_put
+
+	byte "totalSupply"
+	txn ApplicationArgs 3
+	btoi
+	app_global_put
+
+	byte "decimals"
+	txn ApplicationArgs 4
+	btoi
+	app_global_put
+
+	txn Sender
+	byte "balance"
+	txn ApplicationArgs 3
+	btoi
+	app_local_put
+
+	byte 0x151f7c7580 // Return True
+	log
+
+	int 1
+	return
+
+handle_optin:
+	txn Sender
+	byte "balance"
+	int 0
+	app_local_put
+
+	byte 0x151f7c7580 // Return True
+	log
+
+	int 1
+	return
+
+handle_closeout:
+	// Should do the same as ClearState program.
+	// Remove balance from circulating.
+	int 1
+	return
+
+handle_update_or_delete:
+	txn Sender
+	global CreatorAddress
+	==
+	return
+
+method_name:
+	byte 0x151f7c75
+	byte "name"
+	app_global_get
+	concat
+	log
+
+	int 1
+	return
+
+method_symbol:
+	byte 0x151f7c75
+	byte "symbol"
+	app_global_get
+	concat
+	log
+
+	int 1
+	return
+
+method_decimals:
+	byte 0x151f7c75
+	byte "decimals"
+	app_global_get
+	itob
+	concat
+	log
+
+	int 1
+	return
+
+method_totalSupply:
+	byte 0x151f7c75
+	byte "totalSupply"
+	app_global_get
+	itob
+	concat
+	log
+
+	int 1
+	return
+
+method_balanceOf:
+	byte 0x151f7c75
+	txn ApplicationArgs 1
+	byte "balance"
+	app_local_get
+	itob
+	concat
+
+	int 1
+	return
+
+method_transfer:
+	// Subtract from sender
+	txn Sender
+	byte "balance"
+	dup2
+	app_local_get
+	txn ApplicationArgs 2
+	btoi
+	-
+	app_local_put
+
+	// Add to recipient
+	txn ApplicationArgs 1
+	byte "balance"
+	dup2
+	app_local_get
+	txn ApplicationArgs 2
+	btoi
+	+
+	app_local_put
+
+	byte 0x151f7c7580 // Return True
+	log
+
+	int 1
+	return
+
+method_transferFrom:
+	// Sender MUST have a record containing their allowance.
+	// Check the senders allowance is greater than or equal to the amount being sent.
+	txn ApplicationArgs 1
+	int 0
+	txn Sender
+	app_local_get_ex
+	assert
+	txn ApplicationArgs 3
+	btoi
+	>=
+	assert
+
+	// Subtract from sender
+	txn ApplicationArgs 1
+	byte "balance"
+	dup2
+	app_local_get
+	txn ApplicationArgs 3
+	btoi
+	-
+	app_local_put
+
+	// Subtract from allowance
+	txn ApplicationArgs 1
+	txn ApplicationArgs 2
+	dup2
+	app_local_get
+	txn ApplicationArgs 3
+	btoi
+	-
+	app_local_put
+
+	// Add to recipient
+	txn ApplicationArgs 2
+	byte "balance"
+	dup2
+	app_local_get
+	txn ApplicationArgs 3
+	btoi
+	+
+	app_local_put
+
+	byte 0x151f7c7580 // Return True
+	log
+
+	int 1
+	return
+
+// Approve
+//
+// Arguments:
+//	address _spender
+//	uint64 _value
+//
+// Allows _spender to withdraw from your account multiple times, up to the
+// _value amount. If this function is called again it overwrites the current
+// allowance with _value.
+method_approve:
+	// If the new allowance is 0, delete the approver record
+	txn ApplicationArgs 2
+	btoi
+	bnz add_approver
+
+	// Remove approval
+	txn Sender
+	txn ApplicationArgs 1
+	app_local_del
+
+	b resume_approve
+
+	add_approver:
+	// Set allowance to new approver
+	txn Sender
+	txn ApplicationArgs 1
+	txn ApplicationArgs 2
+	btoi
+	app_local_put
+
+	resume_approve:
+	byte 0x151f7c7580 // Return True
+	log
+
+	int 1
+	return
+
+// Allowance
+//
+// Arguments:
+//	address _owner
+//	address _spender
+//
+// Returns the amount which _spender is still allowed to withdraw from _owner.
+method_allowance:
+	// Get the _spenders allowance from _owners local state.
+	txn ApplicationArgs 1
+	txn ApplicationArgs 2
+	app_local_get
+	itob
+
+	byte 0x151f7c75
+	swap
+	concat
+	log
+
+	int 1
+	return
+
