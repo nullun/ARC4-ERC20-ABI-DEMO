@@ -61,27 +61,27 @@ method "totalSupply()uint64"
 bnz method_totalSupply
 
 txn ApplicationArgs 0
-method "balanceOf(address)uint64"
+method "balanceOf(account)uint64"
 ==
 bnz method_balanceOf
 
 txn ApplicationArgs 0
-method "transfer(address,uint64)bool"
+method "transfer(account,uint64)bool"
 ==
 bnz method_transfer
 
 txn ApplicationArgs 0
-method "transferFrom(address,address,uint64)bool"
+method "transferFrom(account,account,uint64)bool"
 ==
 bnz method_transferFrom
 
 txn ApplicationArgs 0
-method "approve(address,uint64)bool"
+method "approve(account,uint64)bool"
 ==
 bnz method_approve
 
 txn ApplicationArgs 0
-method "allowance(address,address)uint64"
+method "allowance(account,account)uint64"
 ==
 bnz method_allowance
 
@@ -221,12 +221,12 @@ method_totalSupply:
 // Balance Of
 //
 // Arguments:
-//	address _owner
+//	account _owner
 //
-// Returns the account balance of another account with address _owner.
+// Returns the account balance of another account with account _owner.
 method_balanceOf:
 	byte 0x151f7c75
-	txn ApplicationArgs 1
+	txn Accounts 1
 	byte "balance"
 	app_local_get
 	itob
@@ -238,10 +238,10 @@ method_balanceOf:
 // Transfer
 //
 // Arguments:
-//	address _to
+//	account _to
 //	uint64 _value
 //
-// Transfers _value amount of tokens to address _to.
+// Transfers _value amount of tokens to account _to.
 method_transfer:
 	// Subtract from sender
 	txn Sender
@@ -254,7 +254,7 @@ method_transfer:
 	app_local_put
 
 	// Add to recipient
-	txn ApplicationArgs 1
+	txn Accounts 1
 	byte "balance"
 	dup2
 	app_local_get
@@ -272,15 +272,15 @@ method_transfer:
 // Transfer From
 //
 // Arguments:
-//	address _from
-//	address _to
+//	account _from
+//	account _to
 //	uint64 _value
 //
-// Transfers _value amount of tokens from address _from to address _to.
+// Transfers _value amount of tokens from account _from to account _to.
 method_transferFrom:
 	// Sender MUST have a record containing their allowance.
 	// Check the senders allowance is greater than or equal to the amount being sent.
-	txn ApplicationArgs 1
+	txn Accounts 1
 	int 0
 	txn Sender
 	app_local_get_ex
@@ -291,7 +291,7 @@ method_transferFrom:
 	assert
 
 	// Subtract from sender
-	txn ApplicationArgs 1
+	txn Accounts 1
 	byte "balance"
 	dup2
 	app_local_get
@@ -301,8 +301,8 @@ method_transferFrom:
 	app_local_put
 
 	// Subtract from allowance
-	txn ApplicationArgs 1
-	txn ApplicationArgs 2
+	txn Accounts 1
+	txn Accounts 2
 	dup2
 	app_local_get
 	txn ApplicationArgs 3
@@ -311,7 +311,7 @@ method_transferFrom:
 	app_local_put
 
 	// Add to recipient
-	txn ApplicationArgs 2
+	txn Accounts 2
 	byte "balance"
 	dup2
 	app_local_get
@@ -329,7 +329,7 @@ method_transferFrom:
 // Approve
 //
 // Arguments:
-//	address _spender
+//	account _spender
 //	uint64 _value
 //
 // Allows _spender to withdraw from your account multiple times, up to the
@@ -366,14 +366,14 @@ method_approve:
 // Allowance
 //
 // Arguments:
-//	address _owner
-//	address _spender
+//	account _owner
+//	account _spender
 //
 // Returns the amount which _spender is still allowed to withdraw from _owner.
 method_allowance:
 	// Get the _spenders allowance from _owners local state.
-	txn ApplicationArgs 1
-	txn ApplicationArgs 2
+	txn Accounts 1
+	txn Accounts 2
 	app_local_get
 	itob
 

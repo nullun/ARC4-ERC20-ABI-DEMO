@@ -29,31 +29,25 @@ goal app optin -f $ADDRESS2 --app-id $APPID
 
 ## Transfer
 ```sh
-# You may need to expand the second address for the arg before sending.
+# You may need to expand the second account for the arg before sending.
 goal app method --app-id 49 -f $ADDRESS1 \
-	--method "transfer(address,uint64)bool" \
-	--app-account $ADDRESS2 \
-	--arg '"$ADDRESS2"' --arg 5000
+	--method "transfer(account,uint64)bool" \
+	--arg "$ADDRESS2" --arg 5000
 ```
 
 ## Approve
 ```sh
 # Here we allow $ADDRESS1 to spend up to 10.00 of $ADDRESS2's balance.
 goal app method --app-id 49 -f $ADDRESS2 \
-	--method "approve(address,uint64)bool" \
-	--app-account $ADDRESS1 \
-	--arg '"$ADDRESS1"' --arg 1000
+	--method "approve(account,uint64)bool" \
+	--arg "$ADDRESS1" --arg 1000
 ```
 
 ## Transfer From
 ```sh
-# Note that we don't need to explicitly put $ADDRESS1 in the --app-account
-# arguments here as they're already in it by default, but if it was another
-# address then it is required.
 goal app method --app-id 49 -f $ADDRESS1 \
-	--method "transferFrom(address,address,uint64)bool" \
-	--app-account $ADDRESS2 --app-account $ADDRESS1 \
-	--arg '"$ADDRESS2"' --arg '"$ADDRESS1"' --arg 500
+	--method "transferFrom(account,account,uint64)bool" \
+	--arg "$ADDRESS2" --arg "$ADDRESS1" --arg 500
 ```
 
 And of course all the "view" methods work too, but if you were creating a

@@ -31,22 +31,22 @@
 		},
 		{
 			"name": "balanceOf",
-			"desc": "Returns the account balance of another account with address _owner.",
+			"desc": "Returns the account balance of another account with account _owner.",
 			"args": [
 				{
-					"type": "address",
+					"type": "account",
 					"name": "_owner",
 					"desc": "Address of account you want the balance for."
 				}
 			],
-			"returns": { "type": "uint64", "desc": "Balance of address." }
+			"returns": { "type": "uint64", "desc": "Balance of account." }
 		},
 		{
 			"name": "transfer",
-			"desc": "Transfers _value amount of tokens to address _to.",
+			"desc": "Transfers _value amount of tokens to account _to.",
 			"args": [
 				{
-					"type": "address",
+					"type": "account",
 					"name": "_to",
 					"desc": "Address to send tokens to."
 				},
@@ -60,15 +60,15 @@
 		},
 		{
 			"name": "transferFrom",
-			"desc": "Transfers _value amount of tokens from address _from to address _to.",
+			"desc": "Transfers _value amount of tokens from account _from to account _to.",
 			"args": [
 				{
-					"type": "address",
+					"type": "account",
 					"name": "_from",
 					"desc": "Address to send tokens from."
 				},
 				{
-					"type": "address",
+					"type": "account",
 					"name": "_to",
 					"desc": "Address to send tokens to."
 				},
@@ -85,7 +85,7 @@
 			"desc": "Allows _spender to withdraw from your account multiple times, up to the _value amount. If this function is called again it overwrites the current allowance with _value.",
 			"args": [
 				{
-					"type": "address",
+					"type": "account",
 					"name": "_spender",
 					"desc": "Address of account you want to allow access to your funds."
 				},
@@ -102,12 +102,12 @@
 			"desc": "Returns the amount which _spender is still allowed to withdraw from _owner.",
 			"args": [
 				{
-					"type": "address",
+					"type": "account",
 					"name": "_owner",
 					"desc": "Address of account to check."
 				},
 				{
-					"type": "address",
+					"type": "account",
 					"name": "_spender",
 					"desc": "Address of spender which we're finding the limit for."
 				}
