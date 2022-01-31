@@ -226,7 +226,8 @@ method_totalSupply:
 // Returns the account balance of another account with account _owner.
 method_balanceOf:
 	byte 0x151f7c75
-	txn Accounts 1
+	txn ApplicationArgs 1
+	btoi
 	byte "balance"
 	app_local_get
 	itob
@@ -254,7 +255,8 @@ method_transfer:
 	app_local_put
 
 	// Add to recipient
-	txn Accounts 1
+	txn ApplicationArgs 1
+	btoi
 	byte "balance"
 	dup2
 	app_local_get
@@ -280,7 +282,8 @@ method_transfer:
 method_transferFrom:
 	// Sender MUST have a record containing their allowance.
 	// Check the senders allowance is greater than or equal to the amount being sent.
-	txn Accounts 1
+	txn ApplicationArgs 1
+	btoi
 	int 0
 	txn Sender
 	app_local_get_ex
@@ -291,7 +294,8 @@ method_transferFrom:
 	assert
 
 	// Subtract from sender
-	txn Accounts 1
+	txn ApplicationArgs 1
+	btoi
 	byte "balance"
 	dup2
 	app_local_get
@@ -301,8 +305,10 @@ method_transferFrom:
 	app_local_put
 
 	// Subtract from allowance
-	txn Accounts 1
-	txn Accounts 2
+	txn ApplicationArgs 1
+	btoi
+	txn ApplicationArgs 2
+	btoi
 	dup2
 	app_local_get
 	txn ApplicationArgs 3
@@ -311,7 +317,8 @@ method_transferFrom:
 	app_local_put
 
 	// Add to recipient
-	txn Accounts 2
+	txn ApplicationArgs 2
+	btoi
 	byte "balance"
 	dup2
 	app_local_get
@@ -372,8 +379,10 @@ method_approve:
 // Returns the amount which _spender is still allowed to withdraw from _owner.
 method_allowance:
 	// Get the _spenders allowance from _owners local state.
-	txn Accounts 1
-	txn Accounts 2
+	txn ApplicationArgs 1
+	btoi
+	txn ApplicationArgs 2
+	btoi
 	app_local_get
 	itob
 
