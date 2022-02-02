@@ -307,8 +307,7 @@ method_transferFrom:
 	// Subtract from allowance
 	txn ApplicationArgs 1
 	btoi
-	txn ApplicationArgs 2
-	btoi
+	txn Sender
 	dup2
 	app_local_get
 	txn ApplicationArgs 3
@@ -359,6 +358,8 @@ method_approve:
 	// Set allowance to new approver
 	txn Sender
 	txn ApplicationArgs 1
+	btoi
+	txnas Accounts
 	txn ApplicationArgs 2
 	btoi
 	app_local_put
@@ -383,6 +384,7 @@ method_allowance:
 	btoi
 	txn ApplicationArgs 2
 	btoi
+	txnas Accounts
 	app_local_get
 	itob
 
