@@ -6,6 +6,15 @@ Algorand has a built-in native primative for creating tokens, the Algorand
 Standard Asset (ASA), and should be the first consideration when creating an
 ERC20-like token on Algorand.
 
+## Demo
+
+You can use the `demo.sh` bash script to run through a full set of tests within
+a sandbox environment.
+
+```sh
+./demo.sh
+```
+
 Use only in a sandbox enviornment on a private network. You will need to update
 the JSON file to contain your genesis hash and appID.
 
