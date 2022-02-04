@@ -76,7 +76,7 @@
 				},
 				{
 					"type": "uint64",
-					"name": "_to",
+					"name": "_value",
 					"desc": "Amount of tokens to send."
 				}
 			],
