@@ -1,8 +1,11 @@
 import algosdk, { ABIMethod, ABIResult } from "algosdk";
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
-import { selectAcctInUse } from "../features/applicationSlice";
-import { algodClient, contract } from "../pages/home";
+import {
+  selectAcctInUse,
+  selectAlgod,
+  selectAppId,
+} from "../features/applicationSlice";
 import { parseInputValue, parseReturnValue } from "../utils/ABIutils";
 import {
   Arg,
@@ -42,6 +45,8 @@ const MethodUI = ({
 }) => {
   const refs = useRef<React.MutableRefObject<HTMLInputElement>[]>([]);
   const acctInUse = useSelector(selectAcctInUse);
+  const algodClient = useSelector(selectAlgod);
+  const appID = useSelector(selectAppId);
   const [loading, setLoading] = useState(false);
   const [numOfArgs, setNumOfArgs] = useState(0);
   const [queryResult, setQueryResult] = useState<ABIResult>();
@@ -63,8 +68,10 @@ const MethodUI = ({
   }, [method]);
 
   const performQuery = useCallback(async () => {
-    const atc = new algosdk.AtomicTransactionComposer();
-    const suggestedParams = await algodClient.getTransactionParams().do();
+    if (!algodClient) {
+      console.error("Algod client is not working");
+      return;
+    }
 
     if (!acctInUse) {
       console.error("Accounts are undefined");
@@ -76,10 +83,18 @@ const MethodUI = ({
       return;
     }
 
+    if (!appID) {
+      return;
+    }
+
     setLoading(true);
 
+    const atc = new algosdk.AtomicTransactionComposer();
+
+    const suggestedParams = await algodClient.getTransactionParams().do();
+
     const commonParams = {
-      appID: contract.networks[suggestedParams.genesisHash].appID,
+      appID,
       sender: acctInUse.addr,
       suggestedParams,
       signer: algosdk.makeBasicAccountTransactionSigner(acctInUse),
@@ -111,7 +126,7 @@ const MethodUI = ({
       setLoading(false);
       console.error("Query failed with error: ", error);
     }
-  }, [acctInUse]);
+  }, [acctInUse, appID, algodClient]);
 
   return (
     <MethodWrapper>

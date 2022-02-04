@@ -30,6 +30,7 @@ to this section's matching END comment to see page-specific styles.
   --font-size-m: 1rem;
   --font-size-s: 0.85rem;
   --font-size-xs: 0.725rem;
+  --space-xxxl: 3rem;
   --space-xxl: 1.5rem;
   --space-xl: 1.125rem;
   --space-l: 0.925rem;
@@ -162,7 +163,7 @@ body {
 .wrapper {
   min-height: var(--wrapper-height);
   display: grid;
-  margin: 0 1rem 4rem;
+  margin: 4rem 1rem;
   min-height: 86vh;
 }
 .content {
@@ -208,6 +209,8 @@ h2 {
   color: var(--blue);
 }
 
+h1,
+h2,
 h3,
 h4,
 h5,
@@ -215,7 +218,25 @@ h6 {
   margin: 0;
 }
 
+select,
 input,
 button {
   font-family: var(--font-family);
+}
+
+button {
+  cursor: pointer;
+}
+
+input,
+select {
+  width: 100%;
+  padding: var(--space-s) var(--space-m);
+  margin: 0;
+  border: 1px solid var(--grey);
+  border-radius: 4px;
+}
+
+.valign-top {
+  align-self: flex-start;
 }

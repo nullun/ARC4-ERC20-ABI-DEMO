@@ -21,13 +21,6 @@ export const Desc = styled.p`
 
 export const Arg = styled.div`
   margin-bottom: var(--space-l);
-  input {
-    width: 100%;
-    padding: var(--space-s) var(--space-m);
-    margin: 0;
-    border: 1px solid var(--grey);
-    border-radius: 4px;
-  }
 `;
 
 export const Footer = styled.div`
