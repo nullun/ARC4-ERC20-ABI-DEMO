@@ -228,10 +228,12 @@ method_balanceOf:
 	byte 0x151f7c75
 	txn ApplicationArgs 1
 	btoi
+	txnas Accounts
 	byte "balance"
 	app_local_get
 	itob
 	concat
+	log
 
 	int 1
 	return
