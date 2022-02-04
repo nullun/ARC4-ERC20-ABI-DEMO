@@ -1,12 +1,6 @@
-import algosdk, {
-  Account,
-  encodeUint64,
-  OnApplicationComplete,
-  signLogicSigTransactionObject,
-} from "algosdk";
+import algosdk, { Account, Algodv2 } from "algosdk";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import styled from "styled-components";
 import ERC20 from "../../contracts/ERC20_Interface.json";
 import MethodUI from "../components/methodUI";
 import {
@@ -26,16 +20,25 @@ import {
   setWallet,
   Wallet,
 } from "../features/applicationSlice";
-import {
-  AccountList,
-  Button,
-  DeployButton,
-  DeployInfo,
-  Header,
-  InfoTable,
-  Methods,
-} from "./home.styles";
-import contractBinaries from "../../contracts/contractBinaries";
+import { AccountList, Button, Header, InfoTable, Methods } from "./home.styles";
+
+type StateSchema = {
+  "num-byte-slice": number;
+  "num-uint": number;
+};
+
+type CreatedApp = {
+  "created-at-round"?: number;
+  deleted?: boolean;
+  id: number;
+  params?: {
+    "approval-program": string;
+    "clear-state-program": string;
+    creator: string;
+    "global-state-schema": StateSchema;
+    "local-state-schema": StateSchema;
+  };
+};
 
 // Parse the json file into an object, pass it to create an ABIContract object
 export const contract = new algosdk.ABIContract(ERC20);
@@ -53,7 +56,6 @@ const Home = () => {
   const algodTokenRef = useRef<HTMLInputElement>(null);
   const algodServerRef = useRef<HTMLInputElement>(null);
   const algodPortRef = useRef<HTMLInputElement>(null);
-  const algodClient = useSelector(selectAlgod);
   const kmdTokenRef = useRef<HTMLInputElement>(null);
   const kmdServerRef = useRef<HTMLInputElement>(null);
   const kmdPortRef = useRef<HTMLInputElement>(null);
@@ -61,20 +63,36 @@ const Home = () => {
   const wallets = useSelector(selectWallets);
   const wallet = useSelector(selectWallet);
   const kmd = useSelector(selectKmd);
+  const algodClient = useSelector(selectAlgod);
   const appId = useSelector(selectAppId);
   const accounts = useSelector(selectAccounts);
   const acctInUse = useSelector(selectAcctInUse);
-  const [deploying, setDeploying] = useState(false);
+  const [acctCreatedApps, setAcctCreatedApps] = useState<CreatedApp[]>();
   const dispatch = useDispatch();
 
   const chooseAcct = useCallback(
-    (acct: Account) => {
+    async (acct: Account) => {
       if (acct !== acctInUse) {
         dispatch(setAcctInUse(acct));
       }
     },
     [acctInUse]
   );
+
+  const getCreatedApps = useCallback(async () => {
+    if (acctInUse && algodClient) {
+      const acctInfo = await algodClient
+        .accountInformation(acctInUse.addr)
+        .do();
+      let apps = acctInfo["created-apps"];
+      apps.unshift({ id: 0 });
+      setAcctCreatedApps(apps);
+    }
+  }, [acctInUse, algodClient]);
+
+  useEffect(() => {
+    getCreatedApps();
+  }, [getCreatedApps]);
 
   useEffect(() => {
     if (kmd) {
@@ -99,92 +117,6 @@ const Home = () => {
       dispatch(getAccounts(wallet.id));
     }
   }, [wallet]);
-
-  const deployApp = async () => {
-    if (!acctInUse) {
-      alert("No account chosen");
-      return;
-    }
-    if (!algodClient) {
-      console.error("Algod client is not working");
-      return;
-    }
-    const atc = new algosdk.AtomicTransactionComposer();
-    const approval = new Uint8Array(
-      Buffer.from(contractBinaries.approval, "base64")
-    );
-    const clear = new Uint8Array(Buffer.from(contractBinaries.clear, "base64"));
-    const suggestedParams = await algodClient.getTransactionParams().do();
-
-    /**
-       * good ol' way
-       * const createAppTx = algosdk.makeApplicationCreateTxnFromObject({
-          from: acctInUse.addr,
-          approvalProgram: approval,
-          clearProgram: clear,
-          numGlobalByteSlices: 2,
-          numGlobalInts: 2,
-          numLocalByteSlices: 0,
-          numLocalInts: 16,
-          appArgs: [
-            new Uint8Array(Buffer.from("TestToken")),
-            new Uint8Array(Buffer.from("TT")),
-            encodeUint64(10000),
-            encodeUint64(2),
-          ],
-          onComplete: OnApplicationComplete.OptInOC,
-          suggestedParams,
-        });
-
-        const signedTx = {
-          txn: createAppTx,
-          signer: algosdk.makeBasicAccountTransactionSigner(acctInUse),
-        };
-
-        atc.addTransaction(signedTx);
-       */
-
-    /**
-       * addMethodCall way
-       * atc.addMethodCall({
-          approvalProgram: approval,
-          clearProgram: clear,
-          numGlobalByteSlices: 2,
-          numGlobalInts: 2,
-          numLocalByteSlices: 0,
-          numLocalInts: 16,
-          onComplete: OnApplicationComplete.OptInOC,
-          method: getMethodByName("deploy"),
-          methodArgs: ["TestToken", "TT", 10000, 2],
-          appID: 0,
-          sender: acctInUse.addr,
-          suggestedParams,
-          signer: algosdk.makeBasicAccountTransactionSigner(acctInUse),
-        });
-
-        try {
-          const result = await atc.execute(algodClient, 2);
-
-          for (const idx in result.methodResults) {
-            console.log(result.methodResults[idx]);
-            // setQueryResult(result.methodResults[idx]);
-          }
-        } catch (error) {
-          console.error("Query failed with error: ", error);
-        }
-       */
-
-    try {
-      const result = await atc.execute(algodClient, 2);
-
-      for (const idx in result.methodResults) {
-        console.log(result.methodResults[idx]);
-        // setQueryResult(result.methodResults[idx]);
-      }
-    } catch (error) {
-      console.error("Query failed with error: ", error);
-    }
-  };
 
   const createNewAlgod = useCallback(() => {
     if (
@@ -350,28 +282,25 @@ const Home = () => {
               </AccountList>
             </div>
           )}
-          <div>
-            <span>App ID: </span>
-            <input
-              defaultValue={appId}
-              type="number"
-              onChange={(event) => {
-                console.log("app id? ", event.target.value);
-                dispatch(setAppId(Number(event.target.value)));
-              }}
-            />
-          </div>
+          {acctInUse && acctCreatedApps && (
+            <div>
+              <span className="valign-top">Apps created by Account: </span>
+              <AccountList>
+                {acctCreatedApps.map((app: CreatedApp) => (
+                  <li key={app.id}>
+                    <span>App ID: {app.id}</span>
+                    <Button
+                      onClick={() => dispatch(setAppId(app.id))}
+                      data-active={appId === app.id}
+                    >
+                      {appId === app.id ? "Current" : "Use"}
+                    </Button>
+                  </li>
+                ))}
+              </AccountList>
+            </div>
+          )}
         </InfoTable>
-        <DeployInfo>
-          <h2>Deploy App</h2>
-          <p>
-            You can deploy the demo app using <code>deploy.sh</code> or{" "}
-            <code>demo.sh</code>, or by clicking the following button.
-          </p>
-          <DeployButton onClick={deployApp}>
-            {deploying ? "Deploying..." : "Deploy"}
-          </DeployButton>
-        </DeployInfo>
         <h2>Contract Methods</h2>
         <Methods>
           {ERC20.methods.map((method) => (

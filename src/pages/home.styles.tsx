@@ -19,12 +19,10 @@ export const InfoTable = styled.div`
   div {
     display: flex;
     align-items: center;
-  }
 
-  span:first-child {
-    width: 8rem;
-    white-space: pre;
-    word-break: keep-all;
+    > span:first-child {
+      width: 12rem;
+    }
   }
 
   p {
@@ -80,30 +78,5 @@ export const Button = styled.button`
     &:hover {
       background-position: 100%;
     }
-  }
-`;
-
-export const DeployInfo = styled.div`
-  margin-bottom: var(--space-xxxl);
-  p {
-    margin: var(--space-s) 0;
-  }
-`;
-
-export const DeployButton = styled.button`
-  width: 10rem;
-  font-size: var(--font-size-m);
-  font-weight: bold;
-  color: #444;
-  padding: var(--space-s);
-  background: linear-gradient(319deg, #8bd2f6 0%, #f3e0c3 63%, #f7baba 100%);
-  background-size: 18rem;
-  border: 1px solid #f3e0c3;
-  border-radius: 8px;
-  text-transform: uppercase;
-  transition: background 0.25s;
-
-  &:hover {
-    background-position: 100%;
   }
 `;

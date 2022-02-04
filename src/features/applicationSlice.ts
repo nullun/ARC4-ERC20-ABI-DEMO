@@ -16,7 +16,6 @@ export interface IApplicationState {
   kmd: algosdk.Kmd | undefined;
   wallets: Wallet[] | undefined;
   wallet: Wallet | undefined;
-  walletHandle: string;
   accounts: Account[] | undefined;
   acctInUse: Account | undefined;
   appId: number;
@@ -27,7 +26,6 @@ const initialState: IApplicationState = {
   kmd: undefined,
   wallets: undefined,
   wallet: undefined,
-  walletHandle: "",
   accounts: undefined,
   acctInUse: undefined,
   appId: 0,
