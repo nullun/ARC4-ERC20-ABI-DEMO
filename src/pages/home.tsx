@@ -2,7 +2,7 @@ import algosdk, { Account } from "algosdk";
 import React, { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styled from "styled-components";
-import ERC20 from "../../contracts/ERC20_Interface.json";
+import ERC20 from "../../contracts/ERC20_Contract.json";
 import MethodUI from "../components/methodUI";
 import {
   getAccounts,

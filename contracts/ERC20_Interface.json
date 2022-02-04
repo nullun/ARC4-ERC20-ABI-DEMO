@@ -3,33 +3,6 @@
 	"desc": "An ARC4 compliant ERC20 token on Algorand.",
 	"methods": [
 		{
-			"name": "deploy",
-			"desc": "Deploy a new version of the contract.",
-			"args": [
-				{
-					"type": "string",
-					"name": "name",
-					"desc": "Name of the token. E.g. \"Test Token\"."
-				},
-				{
-					"type": "string",
-					"name": "symbol",
-					"desc": "Symbol of the token. E.g. \"TT\"."
-				},
-				{
-					"type": "uint64",
-					"name": "totalSupply",
-					"desc": "Total supply of the token."
-				},
-				{
-					"type": "uint64",
-					"name": "decimals",
-					"desc": "Number of decimals the token uses."
-				}
-			],
-			"returns": { "type": "bool", "desc": "Returns true if successful." }
-		},
-		{
 			"name": "name",
 			"desc": "Returns the name of the token - e.g. \"TestToken\".",
 			"args": [],
