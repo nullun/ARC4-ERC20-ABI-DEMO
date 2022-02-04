@@ -32,6 +32,11 @@ ${GOAL} app method --app-id ${APPID} -f ${CREATOR} \
 	--method "transfer(account,uint64)bool" \
 	--arg "${USER1}" --arg 5000
 
+# Balance Of USER1
+${GOAL} app method --app-id ${APPID} -f ${CREATOR} \
+	--method "balanceOf(account)uint64" \
+	--arg "${USER1}" --dryrun-dump -o balanceOf.dr
+
 # Give USER2 an allowance of 10.00 TT from USER1
 ${GOAL} app method --app-id ${APPID} -f ${USER1} \
 	--method "approve(account,uint64)bool" \
