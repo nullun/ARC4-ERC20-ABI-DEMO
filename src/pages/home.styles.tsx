@@ -3,9 +3,8 @@ import styled from "styled-components";
 export const Header = styled.div`
   text-align: center;
   margin: 0 auto var(--space-xxxl);
-  p {
-    font-size: var(--font-size-l);
-    margin: 0;
+  h3 {
+    margin-bottom: var(--space-xs);
   }
 `;
 

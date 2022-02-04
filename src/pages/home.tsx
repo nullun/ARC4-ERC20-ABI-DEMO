@@ -1,4 +1,4 @@
-import algosdk, { Account, Algodv2 } from "algosdk";
+import algosdk, { Account } from "algosdk";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ERC20 from "../../contracts/ERC20_Interface.json";
@@ -173,17 +173,11 @@ const Home = () => {
     <>
       <Header>
         <h1 className="title">ARC4 ERC20 ABI Demo</h1>
-        <p>Only available with sandbox and KMD</p>
+        <h3>{ERC20.desc}</h3>
+        <span>Only available with sandbox and KMD</span>
       </Header>
       <div className="home-wrapper">
         <InfoTable>
-          <div>
-            <span>Token name: </span>
-            <span>{ERC20.name}</span>
-          </div>
-          <div>
-            <p>{ERC20.desc}</p>
-          </div>
           <div>
             <span>Algod Token: </span>
             <input
@@ -301,6 +295,8 @@ const Home = () => {
             </div>
           )}
         </InfoTable>
+        <h2></h2>
+
         <h2>Contract Methods</h2>
         <Methods>
           {ERC20.methods.map((method) => (
