@@ -2,7 +2,7 @@
 
 This is purely for educational purposes and I don't encourage using it in any
 projects or on Mainnet.
-Algorand has a built-in native primative for creating tokens, the Algorand
+Algorand has a built-in native primitive for creating tokens, the Algorand
 Standard Asset (ASA), and should be the first consideration when creating an
 ERC20-like token on Algorand.
 
@@ -15,10 +15,11 @@ a sandbox environment.
 ./demo.sh
 ```
 
-Use only in a sandbox enviornment on a private network. You will need to update
+Use only in a sandbox environment on a private network. You will need to update
 the JSON file to contain your genesis hash and appID.
 
 ## Deploy
+
 ```sh
 # Note: The creator has their local state set with the full balance on
 # creation, so the OnCompletion must be OptIn.
@@ -30,6 +31,7 @@ goal app method -f $ADDRESS1 --create --on-completion OptIn \
 ```
 
 ## Opt In
+
 ```sh
 # As I write this I realise I haven't created an ARC4 method for opting in,
 # such as using "_optIn()void". This is called a bare application call.
@@ -37,6 +39,7 @@ goal app optin -f $ADDRESS2 --app-id $APPID
 ```
 
 ## Transfer
+
 ```sh
 # You may need to expand the second account for the arg before sending.
 goal app method --app-id 49 -f $ADDRESS1 \
@@ -45,6 +48,7 @@ goal app method --app-id 49 -f $ADDRESS1 \
 ```
 
 ## Approve
+
 ```sh
 # Here we allow $ADDRESS1 to spend up to 10.00 of $ADDRESS2's balance.
 goal app method --app-id 49 -f $ADDRESS2 \
@@ -53,6 +57,7 @@ goal app method --app-id 49 -f $ADDRESS2 \
 ```
 
 ## Transfer From
+
 ```sh
 goal app method --app-id 49 -f $ADDRESS1 \
 	--method "transferFrom(account,account,uint64)bool" \
@@ -64,4 +69,3 @@ frontend it's unlikely that you'd actually want to submit these transactions to
 see the results.
 
 Pull requests welcome.
-
