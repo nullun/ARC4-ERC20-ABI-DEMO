@@ -6,6 +6,17 @@ Algorand has a built-in native primitive for creating tokens, the Algorand
 Standard Asset (ASA), and should be the first consideration when creating an
 ERC20-like token on Algorand.
 
+Note that the ERC20_Interface.json file can be used as an ABI Contract if you
+add a network section with **your** genesis hash and deployed application ID.
+
+```json
+	...
+	"networks": {
+		"3eaaT1N53+o6+zJfxMF2Nk5TnWVNre6BRF5hFy+ef8U=": { "appID": 16 }
+	},
+	...
+```
+
 ## Demo
 
 You can use the `demo.sh` bash script to run through a full set of tests within
