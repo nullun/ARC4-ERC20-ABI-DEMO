@@ -3,7 +3,6 @@ import styled from "styled-components";
 export const MethodWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  font-size: var(--font-size-l);
   background: white;
   padding: var(--space-m);
   border: 1px solid;
@@ -11,7 +10,6 @@ export const MethodWrapper = styled.div`
 `;
 
 export const Caption = styled.p`
-  font-size: var(--font-size-m);
   margin-top: 0;
 `;
 
@@ -50,11 +48,16 @@ export const Button = styled.button`
   &:hover {
     background-color: var(--color-primary-light);
   }
+
+  &[disabled] {
+    background: var(--grey-light);
+    cursor: default;
+  }
 `;
 
 export const Return = styled.div`
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   font-size: var(--font-size-s);
   column-gap: 0.2rem;
 
@@ -68,4 +71,22 @@ export const ReturnHeader = styled.p`
   align-items: center;
   gap: var(--space-xs);
   margin: 0;
+`;
+
+export const ResultWrapper = styled.div`
+  margin-top: var(--space-l);
+
+  p {
+    font-size: var(--font-size-xs);
+    margin: 0 0 var(--space-s);
+  }
+`;
+
+export const Result = styled.pre`
+  font-size: var(--font-size-s);
+  padding: var(--space-m);
+  border: 1px solid var(--grey-light);
+  border-radius: 4px;
+  margin: 0;
+  white-space: pre-wrap;
 `;

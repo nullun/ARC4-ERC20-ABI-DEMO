@@ -12,8 +12,8 @@ USER1=${ACCOUNTS_PK[1]}
 USER2=${ACCOUNTS_PK[2]}
 
 # Copy contracts to sandbox
-${SB} copyTo ERC20.teal
-${SB} copyTo clear.teal
+${SB} copyTo contracts/ERC20.teal
+${SB} copyTo contracts/clear.teal
 
 # Deploy TestToken (supply 100.00) with CREATOR and capture APPID
 APPID=$(${GOAL} app method -f ${CREATOR} --create --on-completion OptIn \

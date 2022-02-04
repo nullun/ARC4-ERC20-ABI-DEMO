@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Router, Link } from "wouter";
+import React from "react";
+import { Provider } from "react-redux";
+import { Router } from "wouter";
+import store from "./store";
 
 /**
 * This code defines the react app
@@ -24,6 +26,7 @@ import Seo from './components/seo.jsx';
 // Home function that is reflected across the site
 export default function Home() {
   return (
+    <Provider store={store}>
     <Router hook={useHashLocation}>
       <Seo />
       <main role="main" className="wrapper">
@@ -33,5 +36,6 @@ export default function Home() {
         </div>
       </main>
     </Router>
+    </Provider>
   );
 }

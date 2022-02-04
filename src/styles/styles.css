@@ -12,6 +12,8 @@ to this section's matching END comment to see page-specific styles.
   --color-text-main: #333333;
   --color-primary-light: #d0f7f0;
   --color-primary: #afece0;
+  --blue-lighter: #88eeff;
+  --blue-light: #50d7ff;
   --blue: #2800ff;
   --grey-darkest: #333333;
   --grey-darker: #666666;
@@ -27,6 +29,7 @@ to this section's matching END comment to see page-specific styles.
   --font-size-l: 1.4rem;
   --font-size-m: 1rem;
   --font-size-s: 0.85rem;
+  --font-size-xs: 0.725rem;
   --space-xxl: 1.5rem;
   --space-xl: 1.125rem;
   --space-l: 0.925rem;
@@ -34,6 +37,35 @@ to this section's matching END comment to see page-specific styles.
   --space-s: 0.5rem;
   --space-xs: 0.325rem;
   --space-xxs: 0.25rem;
+}
+
+::selection {
+  background: #ddd4ff; /* WebKit/Blink Browsers */
+}
+::-moz-selection {
+  background: #ddd4ff; /* Gecko Browsers */
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: var(--grey-lightest);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(319deg, #8bd2f6 0%, #f3bc55 63%, #f7baba 100%);
+  background-size: 4rem;
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background-position: 100%;
 }
 
 /* Basic page style resets */
@@ -176,6 +208,8 @@ h2 {
   color: var(--blue);
 }
 
+h3,
+h4,
 h5,
 h6 {
   margin: 0;

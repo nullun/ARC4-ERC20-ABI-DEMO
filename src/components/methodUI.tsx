@@ -1,6 +1,9 @@
-import algosdk, { ABIMethod } from "algosdk";
-import React, { useRef, useState, useEffect } from "react";
+import algosdk, { ABIMethod, ABIResult } from "algosdk";
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import { useSelector } from "react-redux";
+import { selectAcctInUse } from "../features/applicationSlice";
 import { algodClient, contract } from "../pages/home";
+import { parseInputValue, parseReturnValue } from "../utils/ABIutils";
 import {
   Arg,
   Button,
@@ -8,6 +11,8 @@ import {
   Desc,
   Footer,
   MethodWrapper,
+  Result,
+  ResultWrapper,
   Return,
   ReturnHeader,
 } from "./methodUI.styles";
@@ -28,9 +33,6 @@ type Method = {
   };
 };
 
-const atc = new algosdk.AtomicTransactionComposer();
-const genesis_hash = "3eaaT1N53+o6+zJfxMF2Nk5TnWVNre6BRF5hFy+ef8U=";
-
 const MethodUI = ({
   method,
   contractMethod,
@@ -38,8 +40,11 @@ const MethodUI = ({
   method: Method;
   contractMethod: ABIMethod;
 }) => {
-  const [numOfArgs, setNumOfArgs] = useState(0);
   const refs = useRef<React.MutableRefObject<HTMLInputElement>[]>([]);
+  const acctInUse = useSelector(selectAcctInUse);
+  const [loading, setLoading] = useState(false);
+  const [numOfArgs, setNumOfArgs] = useState(0);
+  const [queryResult, setQueryResult] = useState<ABIResult>();
 
   useEffect(() => {
     if (method && method.args) {
@@ -57,19 +62,35 @@ const MethodUI = ({
     }
   }, [method]);
 
-  const performQuery = async () => {
+  const performQuery = useCallback(async () => {
+    const atc = new algosdk.AtomicTransactionComposer();
     const suggestedParams = await algodClient.getTransactionParams().do();
 
-    const acct = algosdk.generateAccount();
+    if (!acctInUse) {
+      console.error("Accounts are undefined");
+      return;
+    }
+
+    if (loading) {
+      console.log("Query in progress");
+      return;
+    }
+
+    setLoading(true);
 
     const commonParams = {
-      appID: contract.networks[genesis_hash].appID,
-      sender: acct.addr,
+      appID: contract.networks[suggestedParams.genesisHash].appID,
+      sender: acctInUse.addr,
       suggestedParams,
-      signer: algosdk.makeBasicAccountTransactionSigner(acct),
+      signer: algosdk.makeBasicAccountTransactionSigner(acctInUse),
     };
 
-    const methodArgs = refs.current.map((ref) => ref.current.value);
+    const methodArgs = refs.current.map((ref) =>
+      parseInputValue(
+        ref.current.value,
+        ref.current.getAttribute("data-arg-type")!
+      )
+    );
 
     // Simple call to the `add` method, method_args can be any type but _must_
     // match those in the method signature of the contract
@@ -79,32 +100,40 @@ const MethodUI = ({
       ...commonParams,
     });
 
-    const result = await atc.execute(algodClient, 2);
-    for (const idx in result.methodResults) {
-      console.log(result.methodResults[idx]);
+    try {
+      const result = await atc.execute(algodClient, 2);
+
+      for (const idx in result.methodResults) {
+        setQueryResult(result.methodResults[idx]);
+        setLoading(false);
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error("Query failed with error: ", error);
     }
-  };
+  }, [acctInUse]);
 
   return (
     <MethodWrapper>
-      <h5>{method.name}</h5>
+      <h3>{method.name}</h3>
       <Caption>{method.desc}</Caption>
       {method.args.map((arg, index) => (
         <Arg key={arg.name}>
-          <h6>
+          <h4>
             {arg.name} ({arg.type})
-          </h6>
+          </h4>
           <Desc>{arg.desc}</Desc>
           <input
             placeholder={`${arg.name} (${arg.type})`}
+            data-arg-type={arg.type}
             ref={refs.current[index]}
           ></input>
         </Arg>
       ))}
       <Footer>
-        {method.args.length > 0 && (
-          <Button onClick={performQuery}>Query</Button>
-        )}
+        <Button onClick={performQuery} disabled={!acctInUse || loading}>
+          {loading ? "Querying..." : "Query"}
+        </Button>
         <Return>
           <ReturnHeader>
             <span>Returns</span>
@@ -113,6 +142,19 @@ const MethodUI = ({
           - <Desc>{method.returns.desc}</Desc>
         </Return>
       </Footer>
+      {queryResult && (
+        <ResultWrapper>
+          <h4>Result</h4>
+          {queryResult.txID && <p>Transaction ID: {queryResult.txID}</p>}
+          <Result>
+            {queryResult.returnValue
+              ? parseReturnValue(queryResult.returnValue, method.returns.type)
+              : queryResult.decodeError
+              ? `${queryResult.decodeError.message}\n${queryResult.decodeError.stack}`
+              : "No results"}
+          </Result>
+        </ResultWrapper>
+      )}
     </MethodWrapper>
   );
 };
