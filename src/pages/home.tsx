@@ -24,7 +24,11 @@ const Methods = styled.div`
 // Parse the json file into an object, pass it to create an ABIContract object
 export const contract = new algosdk.ABIContract(ERC20);
 
-export const algodClient = new algosdk.Algodv2("", "http://localhost", 4001);
+export const algodClient = new algosdk.Algodv2(
+  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "http://localhost",
+  4001
+);
 
 // Utility function to return an ABIMethod by its name
 function getMethodByName(name: string): algosdk.ABIMethod {
