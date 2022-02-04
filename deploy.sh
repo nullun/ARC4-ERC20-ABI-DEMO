@@ -23,6 +23,12 @@ APPID=$(${GOAL} app method -f ${CREATOR} --create --on-completion OptIn \
 	--arg '"DemoToken"' --arg '"DT"' --arg 100000 --arg 2 \
 	| grep 'Created app with app index' | awk '{print $6}' | tr -d '\r')
 
+# OptIn USER1
+${GOAL} app optin --app-id ${APPID} -f ${USER1}
+
+# OptIn USER2
+${GOAL} app optin --app-id ${APPID} -f ${USER2}
+
 GH=$(${GOAL} node status | grep 'Genesis hash' | awk '{print $3}' | tr -d '\r')
 
 jq ".+{\"networks\": {\"${GH}\": {\"appID\": ${APPID}}}}" contracts/ERC20_Interface.json > contracts/ERC20_Contract.json
