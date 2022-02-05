@@ -22,7 +22,7 @@ import {
   setWallet,
   Wallet,
 } from "../features/applicationSlice";
-import { useOptIntoApp } from "../hooks/account";
+import { useOptIntoApp, useOptOutApp } from "../hooks/account";
 import { CreatedApp } from "../types/AccountResponse";
 import {
   AccountList,
@@ -71,10 +71,12 @@ const Home = () => {
   const [selfDefinedAppId, setSelfDefinedAppId] = useState(0);
   const [acctOptedInApps, setAcctOptedInApps] = useState<number[]>();
   const [optingIn, setOptingIn] = useState(false);
+  const [optingOut, setOptingOut] = useState(false);
   const [optedIn, setOptedIn] = useState(false);
   const [showConfig, setShowConfig] = useState(true);
   const dispatch = useDispatch();
   const optIntoApp = useOptIntoApp(setOptingIn);
+  const optOutApp = useOptOutApp(setOptingOut);
 
   const appIdButtonClickHandler = (_appId: number) => {
     dispatch(setAppId(_appId));
@@ -333,7 +335,9 @@ const Home = () => {
               <div>
                 <span>Opted-in Apps: </span>
                 <div>
-                  {acctOptedInApps ? acctOptedInApps.join(", ") : "None"}
+                  {acctOptedInApps && acctOptedInApps.length > 0
+                    ? acctOptedInApps.join(", ")
+                    : "None"}
                 </div>
               </div>
             </>
@@ -344,13 +348,23 @@ const Home = () => {
       <Section>
         <h2>App Operations</h2>
         <TxButtonsWrapper>
-          <TxButton
-            onClick={optIntoApp}
-            disabled={optingIn || optedIn || appId === 0}
-          >
-            {optedIn ? "Opted in" : optingIn ? "Opting in..." : "Opt in"}
-            {appId === 0 && " unavailable"}
-          </TxButton>
+          {optedIn ? (
+            <TxButton
+              onClick={optOutApp}
+              disabled={optingOut || optingIn || !optedIn || appId === 0}
+            >
+              {optingOut ? "Opting out..." : "Opt Out"}
+              {appId === 0 && " unavailable"}
+            </TxButton>
+          ) : (
+            <TxButton
+              onClick={optIntoApp}
+              disabled={optingIn || optedIn || appId === 0}
+            >
+              {optingIn ? "Opting in..." : "Opt in"}
+              {appId === 0 && " unavailable"}
+            </TxButton>
+          )}
         </TxButtonsWrapper>
       </Section>
       <Section>

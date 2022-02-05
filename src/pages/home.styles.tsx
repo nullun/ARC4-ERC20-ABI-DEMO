@@ -172,7 +172,12 @@ export const Button = styled.button`
   }
 `;
 
-export const TxButtonsWrapper = styled.div``;
+export const TxButtonsWrapper = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xl);
+`;
 
 export const TxButton = styled.button`
   min-width: 10rem;
