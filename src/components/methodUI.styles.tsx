@@ -11,7 +11,7 @@ export const MethodWrapper = styled.div`
 
 export const Banner = styled.div`
   font-size: var(--font-size-s);
-  background: linear-gradient(319deg, #8bd2f6 0%, #f3e0c3 63%, #f7baba 100%);
+  background: var(--pastel-gradient);
   padding: var(--space-xs) var(--space-s);
   border-radius: 8px;
   margin: 0 0 var(--space-s);

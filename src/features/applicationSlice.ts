@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { State } from "../store";
 import algosdk, { Account } from "algosdk";
+import { AccountResponse } from "../types/AccountResponse";
 
 export type Wallet = {
   driver_name: string;
@@ -10,7 +11,6 @@ export type Wallet = {
   name: string;
   supported_txs: string[];
 };
-
 export interface IApplicationState {
   algod: algosdk.Algodv2 | undefined;
   kmd: algosdk.Kmd | undefined;
@@ -18,6 +18,7 @@ export interface IApplicationState {
   wallet: Wallet | undefined;
   accounts: Account[] | undefined;
   acctInUse: Account | undefined;
+  acctInfo: AccountResponse | undefined;
   appId: number;
 }
 
@@ -28,6 +29,7 @@ const initialState: IApplicationState = {
   wallet: undefined,
   accounts: undefined,
   acctInUse: undefined,
+  acctInfo: undefined,
   appId: 0,
 };
 
@@ -78,6 +80,26 @@ export const getAccounts = createAsyncThunk(
   }
 );
 
+export const getAcctInfo = createAsyncThunk(
+  "app/getAcctInfo",
+  async (arg: any, { getState }) => {
+    const { app } = getState() as State;
+    const { algod, acctInUse } = app;
+    const acctInfo = (await algod!
+      .accountInformation(acctInUse!.addr)
+      .do()) as AccountResponse;
+    return acctInfo;
+  },
+  {
+    condition: (walletId: string, { getState }) => {
+      const { app } = getState() as State;
+      if (!app.algod || !app.acctInUse) {
+        return false;
+      }
+    },
+  }
+);
+
 export const applicationSlice = createSlice({
   name: "app",
   initialState,
@@ -112,6 +134,12 @@ export const applicationSlice = createSlice({
           state.accounts = action.payload;
           state.acctInUse = action.payload[0];
         }
+      )
+      .addCase(
+        getAcctInfo.fulfilled,
+        (state, action: PayloadAction<AccountResponse>) => {
+          state.acctInfo = action.payload;
+        }
       );
   },
 });
@@ -120,6 +148,7 @@ export const selectWallets = (state: State) => state.app.wallets;
 export const selectWallet = (state: State) => state.app.wallet;
 export const selectAccounts = (state: State) => state.app.accounts;
 export const selectAcctInUse = (state: State) => state.app.acctInUse;
+export const selectAcctInfo = (state: State) => state.app.acctInfo;
 export const selectAlgod = (state: State) => state.app.algod;
 export const selectKmd = (state: State) => state.app.kmd;
 export const selectAppId = (state: State) => state.app.appId;

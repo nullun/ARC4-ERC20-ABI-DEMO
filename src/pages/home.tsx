@@ -1,12 +1,14 @@
-import algosdk, { Account } from "algosdk";
+import algosdk, { Account, waitForConfirmation } from "algosdk";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ERC20 from "../../contracts/ERC20_Interface.json";
 import MethodUI from "../components/methodUI";
 import {
   getAccounts,
+  getAcctInfo,
   getWallets,
   selectAccounts,
+  selectAcctInfo,
   selectAcctInUse,
   selectAlgod,
   selectAppId,
@@ -20,25 +22,22 @@ import {
   setWallet,
   Wallet,
 } from "../features/applicationSlice";
-import { AccountList, Button, Header, InfoTable, Methods } from "./home.styles";
-
-type StateSchema = {
-  "num-byte-slice": number;
-  "num-uint": number;
-};
-
-type CreatedApp = {
-  "created-at-round"?: number;
-  deleted?: boolean;
-  id: number;
-  params?: {
-    "approval-program": string;
-    "clear-state-program": string;
-    creator: string;
-    "global-state-schema": StateSchema;
-    "local-state-schema": StateSchema;
-  };
-};
+import { useOptIntoApp } from "../hooks/account";
+import { CreatedApp } from "../types/AccountResponse";
+import {
+  AccountList,
+  Button,
+  Endpoints,
+  Endpoint,
+  Header,
+  InfoTable,
+  InfoTableInner,
+  Methods,
+  Section,
+  TxButton,
+  TxButtonsWrapper,
+  ToggleButton,
+} from "./home.styles";
 
 // Parse the json file into an object, pass it to create an ABIContract object
 export const contract = new algosdk.ABIContract(ERC20);
@@ -67,8 +66,20 @@ const Home = () => {
   const appId = useSelector(selectAppId);
   const accounts = useSelector(selectAccounts);
   const acctInUse = useSelector(selectAcctInUse);
+  const acctInfo = useSelector(selectAcctInfo);
   const [acctCreatedApps, setAcctCreatedApps] = useState<CreatedApp[]>();
+  const [selfDefinedAppId, setSelfDefinedAppId] = useState(0);
+  const [acctOptedInApps, setAcctOptedInApps] = useState<number[]>();
+  const [optingIn, setOptingIn] = useState(false);
+  const [optedIn, setOptedIn] = useState(false);
+  const [showConfig, setShowConfig] = useState(true);
   const dispatch = useDispatch();
+  const optIntoApp = useOptIntoApp(setOptingIn);
+
+  const appIdButtonClickHandler = (_appId: number) => {
+    dispatch(setAppId(_appId));
+    setSelfDefinedAppId(_appId);
+  };
 
   const chooseAcct = useCallback(
     async (acct: Account) => {
@@ -79,24 +90,38 @@ const Home = () => {
     [acctInUse]
   );
 
-  const getCreatedApps = useCallback(async () => {
+  const setAcctApps = useCallback(async () => {
+    if (acctInfo) {
+      // get created apps
+      let createdApps = [...acctInfo["created-apps"]];
+      createdApps.unshift({ id: 0 });
+      setAcctCreatedApps(createdApps);
+      // get opted in apps
+      const optedInApps = acctInfo["apps-local-state"].map((app) => app.id);
+      setAcctOptedInApps(optedInApps);
+    }
+  }, [acctInfo]);
+
+  useEffect(() => {
+    if (acctOptedInApps && appId) {
+      const hasOptedIn =
+        acctOptedInApps.findIndex((val) => val === appId) !== -1;
+      setOptedIn(hasOptedIn);
+    }
+  }, [appId, acctOptedInApps]);
+
+  useEffect(() => {
     if (acctInUse && algodClient) {
-      const acctInfo = await algodClient
-        .accountInformation(acctInUse.addr)
-        .do();
-      let apps = acctInfo["created-apps"];
-      apps.unshift({ id: 0 });
-      setAcctCreatedApps(apps);
+      dispatch(getAcctInfo(null));
     }
   }, [acctInUse, algodClient]);
 
   useEffect(() => {
-    getCreatedApps();
-  }, [getCreatedApps]);
+    setAcctApps();
+  }, [setAcctApps]);
 
   useEffect(() => {
     if (kmd) {
-      console.log("kmd? ", kmd);
       dispatch(getWallets(""));
     }
   }, [kmd]);
@@ -176,64 +201,55 @@ const Home = () => {
         <h3>{ERC20.desc}</h3>
         <span>Only available with sandbox and KMD</span>
       </Header>
-      <div className="home-wrapper">
-        <InfoTable>
-          <div>
-            <span>Algod Token: </span>
-            <input
-              type="text"
-              value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-              ref={algodTokenRef}
-              onChange={createNewAlgod}
-            />
-          </div>
-          <div>
-            <span>Algod Server: </span>
-            <input
-              type="text"
-              value="http://localhost"
-              ref={algodServerRef}
-              onChange={createNewAlgod}
-            />
-          </div>
-          <div>
-            <span>Algod Port: </span>
-            <input
-              type="text"
-              ref={algodPortRef}
-              value="4001"
-              onChange={createNewAlgod}
-              placeholder="4001"
-            />
-          </div>
-          <div>
-            <span>KMD Token: </span>
-            <input
-              type="text"
-              value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-              ref={kmdTokenRef}
-              onChange={createNewKmd}
-            />
-          </div>
-          <div>
-            <span>KMD Server: </span>
-            <input
-              type="text"
-              value="http://localhost"
-              ref={kmdServerRef}
-              onChange={createNewKmd}
-            />
-          </div>
-          <div>
-            <span>KMD Port: </span>
-            <input
-              type="text"
-              ref={kmdPortRef}
-              value="4002"
-              onChange={createNewKmd}
-              placeholder="4002"
-            />
-          </div>
+      <InfoTable>
+        <InfoTableInner data-show={showConfig}>
+          <h2>Config</h2>
+          <Endpoints>
+            <Endpoint>
+              <span>Algod: </span>
+              <input
+                type="text"
+                value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                ref={algodTokenRef}
+                onChange={createNewAlgod}
+              />
+              <input
+                type="text"
+                value="http://localhost"
+                ref={algodServerRef}
+                onChange={createNewAlgod}
+              />
+              <input
+                type="text"
+                ref={algodPortRef}
+                value="4001"
+                onChange={createNewAlgod}
+                placeholder="4001"
+              />
+            </Endpoint>
+            <Endpoint>
+              <span>KMD: </span>
+              <input
+                type="text"
+                value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                ref={kmdTokenRef}
+                onChange={createNewKmd}
+              />
+              <input
+                type="text"
+                value="http://localhost"
+                ref={kmdServerRef}
+                onChange={createNewKmd}
+              />
+              <input
+                type="text"
+                ref={kmdPortRef}
+                value="4002"
+                onChange={createNewKmd}
+                placeholder="4002"
+              />
+            </Endpoint>
+          </Endpoints>
           {wallets && (
             <div>
               <span>KMD Wallets</span>
@@ -248,7 +264,7 @@ const Home = () => {
           )}
           {wallets && (
             <div>
-              <span>KMD status: </span>
+              <span>KMD Status: </span>
               <span>
                 {wallet
                   ? accounts
@@ -284,7 +300,7 @@ const Home = () => {
                   <li key={app.id}>
                     <span>App ID: {app.id}</span>
                     <Button
-                      onClick={() => dispatch(setAppId(app.id))}
+                      onClick={() => appIdButtonClickHandler(app.id)}
                       data-active={appId === app.id}
                     >
                       {appId === app.id ? "Current" : "Use"}
@@ -294,9 +310,50 @@ const Home = () => {
               </AccountList>
             </div>
           )}
-        </InfoTable>
-        <h2></h2>
-
+          {acctInUse && (
+            <>
+              <div>
+                <span>Self-defined App ID: </span>
+                <div>
+                  <input
+                    type="number"
+                    value={selfDefinedAppId}
+                    onChange={(event) =>
+                      setSelfDefinedAppId(Number(event.target.value))
+                    }
+                  />
+                  <Button
+                    onClick={() => dispatch(setAppId(selfDefinedAppId))}
+                    data-active={appId === selfDefinedAppId}
+                  >
+                    {appId === selfDefinedAppId ? "Current" : "Use"}
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <span>Opted-in Apps: </span>
+                <div>
+                  {acctOptedInApps ? acctOptedInApps.join(", ") : "None"}
+                </div>
+              </div>
+            </>
+          )}
+          <ToggleButton onClick={() => setShowConfig(!showConfig)} />
+        </InfoTableInner>
+      </InfoTable>
+      <Section>
+        <h2>App Operations</h2>
+        <TxButtonsWrapper>
+          <TxButton
+            onClick={optIntoApp}
+            disabled={optingIn || optedIn || appId === 0}
+          >
+            {optedIn ? "Opted in" : optingIn ? "Opting in..." : "Opt in"}
+            {appId === 0 && " unavailable"}
+          </TxButton>
+        </TxButtonsWrapper>
+      </Section>
+      <Section>
         <h2>Contract Methods</h2>
         <Methods>
           {ERC20.methods.map((method) => (
@@ -307,7 +364,7 @@ const Home = () => {
             />
           ))}
         </Methods>
-      </div>
+      </Section>
     </>
   );
 };

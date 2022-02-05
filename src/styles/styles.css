@@ -1,12 +1,3 @@
-/******************************************************************************
-START Glitch hello-app default styles
-
-The styles in this section do some minimal CSS resets, set default fonts and 
-colors, and handle the layout for our footer and "Remix on Glitch" button. If
-you're new to CSS they may seem a little complicated, but you can scroll down
-to this section's matching END comment to see page-specific styles.
-******************************************************************************/
-/* Our default values set as CSS variables */
 :root {
   --color-bg: #f7f79c;
   --color-text-main: #333333;
@@ -22,6 +13,12 @@ to this section's matching END comment to see page-specific styles.
   --grey-light: #cccccc;
   --grey-lighter: #dddddd;
   --grey-lightest: #efefef;
+  --pastel-gradient: linear-gradient(
+    319deg,
+    #8bd2f6 0%,
+    #f3e0c3 63%,
+    #f7baba 100%
+  );
   --wrapper-height: 85vh;
   --image-max-width: 320px;
   --font-family: "HK Grotesk";
@@ -98,56 +95,6 @@ code {
     format("opentype");
 }
 
-/* Our remix on glitch button */
-.btn--remix {
-  font-family: HK Grotesk;
-  padding: 0.75rem 1rem;
-  font-size: 1.1rem;
-  line-height: 1rem;
-  font-weight: 500;
-  height: 2.75rem;
-  align-items: center;
-  cursor: pointer;
-  background: #ffffff;
-  border: 1px solid #000000;
-  box-sizing: border-box;
-  border-radius: 4px;
-  text-decoration: none;
-  color: #000;
-  white-space: nowrap;
-  margin-left: auto;
-}
-
-/* Navigation grid */
-.footer {
-  display: flex;
-  justify-content: space-between;
-  margin: 1rem auto 0;
-  padding: 1rem 0 0.75rem 0;
-  width: 100%;
-  flex-wrap: wrap;
-  border-top: 4px solid #fff;
-}
-
-.footer a:not(.btn--remix):link,
-a:not(.btn--remix):visited {
-  font-family: HK Grotesk;
-  font-style: normal;
-  font-weight: normal;
-  font-size: 1.1rem;
-  color: #000;
-  text-decoration: none;
-  border-style: none;
-}
-.footer a:hover {
-  background: var(--color-primary);
-}
-
-.footer .links {
-  padding: 0.5rem 1rem 1.5rem;
-  white-space: nowrap;
-}
-
 .divider {
   padding: 0 1rem;
 }
@@ -161,8 +108,10 @@ body {
   background-color: var(--color-bg);
 }
 .wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   min-height: var(--wrapper-height);
-  display: grid;
   margin: 4rem 1rem;
   min-height: 86vh;
 }
@@ -170,6 +119,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: var(--space-xxxl);
+  max-width: 800px;
 }
 
 /* Page titles */
@@ -197,14 +148,6 @@ h1 {
   text-decoration: none;
 }
 
-/* Instructions */
-.home-wrapper {
-  max-width: 800px;
-  margin: 1rem auto 0;
-}
-.instructions p {
-  font-size: 1rem;
-}
 h2 {
   color: var(--blue);
 }

@@ -1,4 +1,9 @@
-import algosdk, { ABIMethod, ABIResult, OnApplicationComplete } from "algosdk";
+import algosdk, {
+  ABIMethodParams,
+  ABIMethod,
+  ABIResult,
+  OnApplicationComplete,
+} from "algosdk";
 import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -24,27 +29,11 @@ import {
 } from "./methodUI.styles";
 import contractBinaries from "../../contracts/contractBinaries";
 
-type Arg = {
-  type: string;
-  name: string;
-  desc: string;
-};
-
-type Method = {
-  name: string;
-  desc: string;
-  args: Arg[];
-  returns: {
-    type: string;
-    desc: string;
-  };
-};
-
 const MethodUI = ({
   method,
   contractMethod,
 }: {
-  method: Method;
+  method: ABIMethodParams;
   contractMethod: ABIMethod;
 }) => {
   const refs = useRef<React.MutableRefObject<HTMLInputElement>[]>([]);
