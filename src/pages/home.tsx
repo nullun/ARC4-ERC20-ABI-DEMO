@@ -22,7 +22,7 @@ import {
   setWallet,
   Wallet,
 } from "../features/applicationSlice";
-import { useOptIntoApp, useOptOutApp } from "../hooks/account";
+import { useDeleteApp, useOptIntoApp, useOptOutApp } from "../hooks/account";
 import { CreatedApp } from "../types/AccountResponse";
 import {
   AccountList,
@@ -73,10 +73,12 @@ const Home = () => {
   const [optingIn, setOptingIn] = useState(false);
   const [optingOut, setOptingOut] = useState(false);
   const [optedIn, setOptedIn] = useState(false);
+  const [deletingApp, setDeletingApp] = useState(false);
   const [showConfig, setShowConfig] = useState(true);
   const dispatch = useDispatch();
   const optIntoApp = useOptIntoApp(setOptingIn);
   const optOutApp = useOptOutApp(setOptingOut);
+  const deleteApp = useDeleteApp(setDeletingApp);
 
   const appIdButtonClickHandler = (_appId: number) => {
     dispatch(setAppId(_appId));
@@ -365,6 +367,14 @@ const Home = () => {
               {appId === 0 && " unavailable"}
             </TxButton>
           )}
+          {acctCreatedApps &&
+            acctCreatedApps
+              .map((app) => !!app.id && app.id)
+              .includes(appId) && (
+              <TxButton onClick={deleteApp} disabled={deletingApp}>
+                {deletingApp ? "Deleting app..." : "Delete app"}
+              </TxButton>
+            )}
         </TxButtonsWrapper>
       </Section>
       <Section>
