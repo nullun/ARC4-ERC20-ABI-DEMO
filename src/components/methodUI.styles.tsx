@@ -9,8 +9,20 @@ export const MethodWrapper = styled.div`
   border-radius: 0.4rem;
 `;
 
+export const Banner = styled.div`
+  font-size: var(--font-size-s);
+  background: var(--pastel-gradient);
+  padding: var(--space-xs) var(--space-s);
+  border-radius: 8px;
+  margin: 0 0 var(--space-s);
+`;
+
 export const Caption = styled.p`
   margin-top: 0;
+
+  code {
+    font-size: var(--font-size-s);
+  }
 `;
 
 export const Desc = styled.p`
@@ -21,13 +33,6 @@ export const Desc = styled.p`
 
 export const Arg = styled.div`
   margin-bottom: var(--space-l);
-  input {
-    width: 100%;
-    padding: var(--space-s) var(--space-m);
-    margin: 0;
-    border: 1px solid var(--grey);
-    border-radius: 4px;
-  }
 `;
 
 export const Footer = styled.div`

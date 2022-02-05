@@ -1,11 +1,26 @@
-import algosdk, { ABIMethod, ABIResult } from "algosdk";
+import algosdk, {
+  ABIMethodParams,
+  ABIMethod,
+  ABIResult,
+  OnApplicationComplete,
+} from "algosdk";
 import React, { useRef, useState, useEffect, useCallback } from "react";
-import { useSelector } from "react-redux";
-import { selectAcctInUse } from "../features/applicationSlice";
-import { algodClient, contract } from "../pages/home";
-import { parseInputValue, parseReturnValue } from "../utils/ABIutils";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getAccounts,
+  selectAcctInUse,
+  selectAlgod,
+  selectAppId,
+  selectWallet,
+} from "../features/applicationSlice";
+import {
+  decorateDesc,
+  parseInputValue,
+  parseReturnValue,
+} from "../utils/ABIutils";
 import {
   Arg,
+  Banner,
   Button,
   Caption,
   Desc,
@@ -16,35 +31,25 @@ import {
   Return,
   ReturnHeader,
 } from "./methodUI.styles";
-
-type Arg = {
-  type: string;
-  name: string;
-  desc: string;
-};
-
-type Method = {
-  name: string;
-  desc: string;
-  args: Arg[];
-  returns: {
-    type: string;
-    desc: string;
-  };
-};
+import contractBinaries from "../../contracts/contractBinaries";
 
 const MethodUI = ({
   method,
   contractMethod,
 }: {
-  method: Method;
+  method: ABIMethodParams;
   contractMethod: ABIMethod;
 }) => {
   const refs = useRef<React.MutableRefObject<HTMLInputElement>[]>([]);
   const acctInUse = useSelector(selectAcctInUse);
+  const algodClient = useSelector(selectAlgod);
+  const appID = useSelector(selectAppId);
+  const wallet = useSelector(selectWallet);
   const [loading, setLoading] = useState(false);
   const [numOfArgs, setNumOfArgs] = useState(0);
   const [queryResult, setQueryResult] = useState<ABIResult>();
+  const isDeploy = method.name === "deploy";
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (method && method.args) {
@@ -63,8 +68,10 @@ const MethodUI = ({
   }, [method]);
 
   const performQuery = useCallback(async () => {
-    const atc = new algosdk.AtomicTransactionComposer();
-    const suggestedParams = await algodClient.getTransactionParams().do();
+    if (!algodClient) {
+      console.error("Algod client is not working");
+      return;
+    }
 
     if (!acctInUse) {
       console.error("Accounts are undefined");
@@ -72,14 +79,21 @@ const MethodUI = ({
     }
 
     if (loading) {
-      console.log("Query in progress");
+      return;
+    }
+
+    if (!appID && method.name !== "deploy") {
       return;
     }
 
     setLoading(true);
 
+    const atc = new algosdk.AtomicTransactionComposer();
+
+    const suggestedParams = await algodClient.getTransactionParams().do();
+
     const commonParams = {
-      appID: contract.networks[suggestedParams.genesisHash].appID,
+      appID,
       sender: acctInUse.addr,
       suggestedParams,
       signer: algosdk.makeBasicAccountTransactionSigner(acctInUse),
@@ -92,18 +106,41 @@ const MethodUI = ({
       )
     );
 
-    // Simple call to the `add` method, method_args can be any type but _must_
-    // match those in the method signature of the contract
-    atc.addMethodCall({
+    let finalMethod = {
       method: contractMethod,
       methodArgs,
       ...commonParams,
-    });
+    };
+
+    if (isDeploy) {
+      const approval = new Uint8Array(
+        Buffer.from(contractBinaries.approval, "base64")
+      );
+      const clear = new Uint8Array(
+        Buffer.from(contractBinaries.clear, "base64")
+      );
+      finalMethod = Object.assign(finalMethod, {
+        approvalProgram: approval,
+        clearProgram: clear,
+        numGlobalByteSlices: 2,
+        numGlobalInts: 2,
+        numLocalByteSlices: 0,
+        numLocalInts: 16,
+        onComplete: OnApplicationComplete.OptInOC,
+      });
+    }
+
+    // Simple call to the `add` method, method_args can be any type but _must_
+    // match those in the method signature of the contract
+    atc.addMethodCall(finalMethod);
 
     try {
       const result = await atc.execute(algodClient, 2);
 
       for (const idx in result.methodResults) {
+        if (isDeploy) {
+          dispatch(getAccounts(wallet!.id));
+        }
         setQueryResult(result.methodResults[idx]);
         setLoading(false);
       }
@@ -111,28 +148,50 @@ const MethodUI = ({
       setLoading(false);
       console.error("Query failed with error: ", error);
     }
-  }, [acctInUse]);
+  }, [acctInUse, appID, algodClient]);
 
   return (
     <MethodWrapper>
+      {isDeploy && (
+        <Banner>
+          You can deploy the demo app using <code>deploy.sh</code> or{" "}
+          <code>demo.sh</code>, or by using this UI.
+        </Banner>
+      )}
       <h3>{method.name}</h3>
-      <Caption>{method.desc}</Caption>
-      {method.args.map((arg, index) => (
-        <Arg key={arg.name}>
-          <h4>
-            {arg.name} ({arg.type})
-          </h4>
-          <Desc>{arg.desc}</Desc>
-          <input
-            placeholder={`${arg.name} (${arg.type})`}
-            data-arg-type={arg.type}
-            ref={refs.current[index]}
-          ></input>
-        </Arg>
-      ))}
+      {method.desc && (
+        <Caption
+          dangerouslySetInnerHTML={{ __html: decorateDesc(method.desc) }}
+        />
+      )}
+      {method.args.map((arg, index) => {
+        return (
+          <Arg key={arg.name}>
+            <h4>
+              {arg.name} ({arg.type})
+            </h4>
+            <Desc>{arg.desc}</Desc>
+            <input
+              placeholder={`${arg.name} (${arg.type})`}
+              data-arg-type={arg.type}
+              ref={refs.current[index]}
+              disabled={isDeploy && appID !== 0}
+            ></input>
+          </Arg>
+        );
+      })}
       <Footer>
-        <Button onClick={performQuery} disabled={!acctInUse || loading}>
-          {loading ? "Querying..." : "Query"}
+        <Button
+          onClick={performQuery}
+          disabled={!acctInUse || loading || (isDeploy && appID !== 0)}
+        >
+          {isDeploy
+            ? loading
+              ? "Deploying..."
+              : "Deploy"
+            : loading
+            ? "Querying..."
+            : "Query"}
         </Button>
         <Return>
           <ReturnHeader>

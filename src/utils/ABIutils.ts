@@ -20,3 +20,7 @@ export const parseReturnValue = (val: any, dataType: string) => {
       return val;
   }
 };
+
+export const decorateDesc = (desc: string) => {
+  return desc.replaceAll(/(_\w+)/g, "<code>$&</code>");
+};
