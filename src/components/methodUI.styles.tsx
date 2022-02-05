@@ -19,6 +19,10 @@ export const Banner = styled.div`
 
 export const Caption = styled.p`
   margin-top: 0;
+
+  code {
+    font-size: var(--font-size-s);
+  }
 `;
 
 export const Desc = styled.p`

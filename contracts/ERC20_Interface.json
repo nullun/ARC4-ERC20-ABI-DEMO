@@ -83,7 +83,7 @@
 		},
 		{
 			"name": "transferFrom",
-			"desc": "Transfers _value amount of tokens from account _from to account _to.",
+			"desc": "Transfers _value amount of tokens from account _from to account _to using the allowance mechanism.",
 			"args": [
 				{
 					"type": "account",

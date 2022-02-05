@@ -13,7 +13,11 @@ import {
   selectAppId,
   selectWallet,
 } from "../features/applicationSlice";
-import { parseInputValue, parseReturnValue } from "../utils/ABIutils";
+import {
+  decorateDesc,
+  parseInputValue,
+  parseReturnValue,
+} from "../utils/ABIutils";
 import {
   Arg,
   Banner,
@@ -75,7 +79,6 @@ const MethodUI = ({
     }
 
     if (loading) {
-      console.log("Query in progress");
       return;
     }
 
@@ -133,7 +136,6 @@ const MethodUI = ({
 
     try {
       const result = await atc.execute(algodClient, 2);
-      console.log("result? ", result);
 
       for (const idx in result.methodResults) {
         if (isDeploy) {
@@ -157,21 +159,27 @@ const MethodUI = ({
         </Banner>
       )}
       <h3>{method.name}</h3>
-      <Caption>{method.desc}</Caption>
-      {method.args.map((arg, index) => (
-        <Arg key={arg.name}>
-          <h4>
-            {arg.name} ({arg.type})
-          </h4>
-          <Desc>{arg.desc}</Desc>
-          <input
-            placeholder={`${arg.name} (${arg.type})`}
-            data-arg-type={arg.type}
-            ref={refs.current[index]}
-            disabled={isDeploy && appID !== 0}
-          ></input>
-        </Arg>
-      ))}
+      {method.desc && (
+        <Caption
+          dangerouslySetInnerHTML={{ __html: decorateDesc(method.desc) }}
+        />
+      )}
+      {method.args.map((arg, index) => {
+        return (
+          <Arg key={arg.name}>
+            <h4>
+              {arg.name} ({arg.type})
+            </h4>
+            <Desc>{arg.desc}</Desc>
+            <input
+              placeholder={`${arg.name} (${arg.type})`}
+              data-arg-type={arg.type}
+              ref={refs.current[index]}
+              disabled={isDeploy && appID !== 0}
+            ></input>
+          </Arg>
+        );
+      })}
       <Footer>
         <Button
           onClick={performQuery}
